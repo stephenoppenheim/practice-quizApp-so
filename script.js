@@ -1,6 +1,7 @@
 const startButton = document.getElementById("start");
 const contentBox = document.getElementById("content-box");
 const questionNumber = 0;
+const questionScreenElements = {};
 const questions = [ 
     {
         question: "Question 1: What state is San Antonio located in?", 
@@ -23,7 +24,7 @@ const questions = [
     }
 ];
 
-//helper functions
+// Helper Functions
 
 const startQuiz = () => {
     contentBox.innerHTML = "";
@@ -34,6 +35,19 @@ const startQuiz = () => {
     const answerButtonFour = document.createElement("button");
     const replyText = document.createElement("p");
     const nextButton = document.createElement("button");
+
+    Object.assign(questionScreenElements, {
+        question: curQuestion,
+        answerOne: answerButtonOne,
+        answerTwo: answerButtonTwo,
+        answerThree: answerButtonThree,
+        answerFour: answerButtonFour,
+        reply: replyText,
+        next: nextButton
+    })
+
+    console.log(questionScreenElements)
+    
     replyText.style.visibility = "hidden";
     replyText.innerText = "Invisible text here";
     nextButton.innerText = "Next Question!";
@@ -56,8 +70,28 @@ const assignQuestionInformation = (curQuestion, answerButtonOne, answerButtonTwo
     answerButtonThree.innerText = allChoices[2];
     answerButtonFour.innerText = allChoices[3];
     const answerButtons = [answerButtonOne, answerButtonTwo, answerButtonThree, answerButtonFour];
-    answerButtons[questionInfo.answer].setAttribute("data-isCorrect", "true");
+    answerButtons[questionInfo.answer].setAttribute("data-iscorrect", "true");
+    for (const btn of answerButtons) btn.addEventListener("click", handleChoice);
 };
+
+const isCorrectAnswer = (button) => button.dataset.iscorrect === "true";
+
+const handleCorrectAnswer = () => {
+
+}
+
+const handleIncorrectAnswer = (btnClicked) => {
+    btnClicked.disabled = true;
+    const reply = questionScreenElements.reply;
+    reply.innerText = "Wrong answer, try again!";
+    reply.style.visibility = "visible";
+}
+
+const handleChoice = (event) => {
+    const btnClicked = event.target;
+    if (isCorrectAnswer(btnClicked)) handleCorrectAnswer()
+    else handleIncorrectAnswer(btnClicked);
+}
 
 // Event Listeners
 
