@@ -1,6 +1,6 @@
 const startButton = document.getElementById("start");
 const contentBox = document.getElementById("content-box");
-const questionNumber = 0;
+let questionNumber = 0;
 const questionScreenElements = {};
 const questions = [ 
     {
@@ -36,48 +36,52 @@ const startQuiz = () => {
     const replyText = document.createElement("p");
     const nextButton = document.createElement("button");
 
+    contentBox.append(curQuestion, answerButtonOne, answerButtonTwo, answerButtonThree, answerButtonFour, replyText, nextButton);
+
     Object.assign(questionScreenElements, {
         question: curQuestion,
-        answerOne: answerButtonOne,
-        answerTwo: answerButtonTwo,
-        answerThree: answerButtonThree,
-        answerFour: answerButtonFour,
+        answerBtns: [answerButtonOne, answerButtonTwo, answerButtonThree, answerButtonFour],
         reply: replyText,
         next: nextButton
     })
-
-    console.log(questionScreenElements)
     
     replyText.style.visibility = "hidden";
     replyText.innerText = "Invisible text here";
     nextButton.innerText = "Next Question!";
-    assignQuestionInformation(curQuestion, answerButtonOne, answerButtonTwo, answerButtonThree, answerButtonFour);
-    contentBox.append(curQuestion);
-    contentBox.append(answerButtonOne);
-    contentBox.append(answerButtonTwo);
-    contentBox.append(answerButtonThree);
-    contentBox.append(answerButtonFour);
-    contentBox.append(replyText);
-    contentBox.append(nextButton);
+    nextButton.disabled = true;
+
+    nextButton.addEventListener("click", handlenNextQuestion);
+    for (const btn of questionScreenElements.answerBtns) {
+        btn.addEventListener("click", handleChoice);
+        btn.setAttribute("data-iscorrect", "false");
+    }
+    
+    assignQuestionInformation();
 }
 
-const assignQuestionInformation = (curQuestion, answerButtonOne, answerButtonTwo, answerButtonThree, answerButtonFour) => {
-    const questionInfo = questions[questionNumber]
-    const allChoices = questionInfo.choices;    
-    curQuestion.innerText = questionInfo.question;  
-    answerButtonOne.innerText = allChoices[0];
-    answerButtonTwo.innerText = allChoices[1];
-    answerButtonThree.innerText = allChoices[2];
-    answerButtonFour.innerText = allChoices[3];
-    const answerButtons = [answerButtonOne, answerButtonTwo, answerButtonThree, answerButtonFour];
-    answerButtons[questionInfo.answer].setAttribute("data-iscorrect", "true");
-    for (const btn of answerButtons) btn.addEventListener("click", handleChoice);
+const assignQuestionInformation = () => {
+    const questionInfo = questions[questionNumber];
+    console.log(questionInfo)
+    const allChoices = questionInfo.choices;
+    const answerBtns = questionScreenElements.answerBtns;
+    questionScreenElements.question.innerText = questionInfo.question;  
+    answerBtns[0].innerText = allChoices[0];
+    answerBtns[1].innerText = allChoices[1];
+    answerBtns[2].innerText = allChoices[2];
+    answerBtns[3].innerText = allChoices[3];
+    answerBtns[questionInfo.answer].setAttribute("data-iscorrect", "true");
 };
 
 const isCorrectAnswer = (button) => button.dataset.iscorrect === "true";
 
-const handleCorrectAnswer = () => {
-
+const handleCorrectAnswer = (btnClicked) => {
+    for (const btn of questionScreenElements.answerBtns) btn.disabled = true;
+    const reply = questionScreenElements.reply;
+    reply.innerText = "Congrats! You got it right! Click the button below to move to the next question!";
+    reply.style.visibility = "visible";
+    questionScreenElements.next.disabled = false;
+    btnClicked.setAttribute("data-iscorrect", "false");
+    questionNumber++;
 }
 
 const handleIncorrectAnswer = (btnClicked) => {
@@ -89,8 +93,32 @@ const handleIncorrectAnswer = (btnClicked) => {
 
 const handleChoice = (event) => {
     const btnClicked = event.target;
-    if (isCorrectAnswer(btnClicked)) handleCorrectAnswer()
+    if (isCorrectAnswer(btnClicked)) handleCorrectAnswer(btnClicked);
     else handleIncorrectAnswer(btnClicked);
+}
+
+const handlenNextQuestion = () => {
+    if (questionNumber < questions.length) {
+        assignQuestionInformation();
+        for (const btn of questionScreenElements.answerBtns) btn.disabled = false;
+        questionScreenElements.reply.style.visibility = "hidden";
+        questionScreenElements.next.disabled = true;
+    }
+    else {
+        questionNumber = 0;
+        endQuiz();
+    }
+}
+
+const endQuiz = () => {
+    contentBox.innerHTML = "";
+    const endingText = document.createElement("p");
+    const restartBtn = document.createElement("button");
+    endingText.innerHTML = "Congratulations! You finished the quiz!<br />Press the button below to restart it!";
+    restartBtn.innerText = "Restart";
+    restartBtn.addEventListener("click", startQuiz);
+    contentBox.append(endingText, restartBtn);
+    
 }
 
 // Event Listeners
